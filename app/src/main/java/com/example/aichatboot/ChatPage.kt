@@ -1,30 +1,18 @@
 package com.example.aichatboot
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Send
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,25 +26,21 @@ import com.example.aichatboot.ui.theme.ColorUserMessage
 import com.example.aichatboot.ui.theme.Purple80
 
 @Composable
-fun ChatPage(modifier: Modifier = Modifier, viewModel: ViewModel){
-    Column (
-        modifier = modifier
-    ) {
+fun ChatPage(modifier: Modifier = Modifier, viewModel: ViewModel) {
+    Column(modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         AppHeader()
         MessageList(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
             messageList = viewModel.messageList
         )
-        MessageInput(
-            onMessageSend = {
-                viewModel.sendMessage(it)
-            })
+        Divider(color = Color.Gray.copy(alpha = 0.3f))
+        MessageInput(onMessageSend = viewModel::sendMessage)
     }
 }
 
 @Composable
-fun MessageList(modifier: Modifier = Modifier,messageList : List<MessageModel>) {
-    if(messageList.isEmpty()){
+fun MessageList(modifier: Modifier = Modifier, messageList: List<MessageModel>) {
+    if (messageList.isEmpty()) {
         Column(
             modifier = modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -66,111 +50,109 @@ fun MessageList(modifier: Modifier = Modifier,messageList : List<MessageModel>) 
                 modifier = Modifier.size(60.dp),
                 painter = painterResource(id = R.drawable.outline_assignment_returned_24),
                 contentDescription = "Icon",
-                tint = Purple80,
+                tint = Purple80
             )
-            Text(text = "Ask me anything", fontSize = 22.sp)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = "Ask me anything", fontSize = 20.sp, fontWeight = FontWeight.Medium)
         }
-    }else{
+    } else {
         LazyColumn(
-            modifier = modifier,
+            modifier = modifier.fillMaxSize().padding(vertical = 8.dp),
             reverseLayout = true
         ) {
-            items(messageList.reversed()){
-                MessageRow(messageModel = it)
+            items(messageList.reversed()) {
+                AnimatedVisibility(visible = true, enter = fadeIn(), exit = fadeOut()) {
+                    MessageRow(messageModel = it)
+                }
             }
         }
     }
-
-
 }
 
 @Composable
 fun MessageRow(messageModel: MessageModel) {
-    val isModel = messageModel.role=="model"
-
+    val isModel = messageModel.role == "model"
     Row(
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = if (isModel) Arrangement.Start else Arrangement.End
     ) {
-
         Box(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .padding(6.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(if (isModel) ColorModelMessage else ColorUserMessage)
+                .padding(12.dp)
+                .widthIn(max = 300.dp)
         ) {
-
-            Box(
-                modifier = Modifier
-                    .align(if (isModel) Alignment.BottomStart else Alignment.BottomEnd)
-                    .padding(
-                        start = if (isModel) 8.dp else 70.dp,
-                        end = if (isModel) 70.dp else 8.dp,
-                        top = 8.dp,
-                        bottom = 8.dp
-                    )
-                    .clip(RoundedCornerShape(48f))
-                    .background(if (isModel) ColorModelMessage else ColorUserMessage)
-                    .padding(16.dp)
-            ) {
-
-                SelectionContainer {
-                    Text(
-                        text = messageModel.message,
-                        fontWeight = FontWeight.W500,
-                        color = Color.White
-                    )
-                }
-
-
+            SelectionContainer {
+                Text(
+                    text = messageModel.message,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = Color.White
+                )
             }
-
         }
-
-
     }
-
-
 }
 
 @Composable
-fun MessageInput(onMessageSend : (String)-> Unit) {
-    var message by remember {
-        mutableStateOf("")
-    }
+fun MessageInput(onMessageSend: (String) -> Unit) {
+    var message by remember { mutableStateOf("") }
 
     Row(
-        modifier = Modifier.padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically){
-            OutlinedTextField(
-                modifier = Modifier.weight(1f),
-                value = message,
-                onValueChange = {
-                    message = it
-                }
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        OutlinedTextField(
+            modifier = Modifier
+                .weight(1f)
+                .clip(RoundedCornerShape(16.dp)),
+            value = message,
+            onValueChange = { message = it },
+            placeholder = { Text("Type a message...") },
+            maxLines = 5,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = Color.Gray
             )
-        IconButton(onClick = {
-            if(message.isNotEmpty()){
-                onMessageSend(message)
-                message = ""
-            }
-        }) {
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        IconButton(
+            onClick = {
+                if (message.isNotBlank()) {
+                    onMessageSend(message.trim())
+                    message = ""
+                }
+            },
+            modifier = Modifier
+                .size(48.dp)
+                .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
+        ) {
             Icon(
                 imageVector = Icons.Default.Send,
-                contentDescription = "Send"
+                contentDescription = "Send",
+                tint = Color.White
             )
         }
     }
-        }
+}
 
 @Composable
-fun AppHeader(){
+fun AppHeader() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.primary)
+            .padding(vertical = 20.dp, horizontal = 16.dp)
     ) {
         Text(
-            modifier = Modifier.padding(16.dp),
-            text = "chat Boot by abdellah",
+            text = "AI ChatBot by Abdellah",
             color = Color.White,
-            fontSize = 22.sp
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold
         )
     }
 }
