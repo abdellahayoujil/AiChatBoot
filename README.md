@@ -1,4 +1,5 @@
 Gemini AI ChatBot 🤖✨
+
 An elegant AI-powered chatbot Android app built with Kotlin and Jetpack Compose. This project integrates the Gemini Pro (gemini-1.5-flash) model from Google AI for real-time, context-aware conversations.
 
 🔗 GitHub Repository: https://github.com/abdellahayoujil/AiChatBoot
