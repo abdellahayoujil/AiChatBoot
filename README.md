@@ -61,9 +61,6 @@ MessageModel.kt – Data model for messages
 
 ui/theme/ – App themes and color palettes
 
-📄 License
-This project is licensed under the MIT License.
-
 🙌 Acknowledgements
 Built using the official Google AI Gemini SDK
 
